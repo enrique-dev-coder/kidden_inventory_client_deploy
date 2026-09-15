@@ -6,7 +6,15 @@ import ModeEditIcon from '@mui/icons-material/ModeEdit';
 const TableColumn = ({ columnTitle, key, color }) => {
   return (
     <div key={key}>
-      <Box sx={{ background: color, border: '1px solid black' }}>
+      <Box
+        className="planeacion-print-color"
+        sx={{
+          backgroundColor: color,
+          border: '1px solid black',
+          WebkitPrintColorAdjust: 'exact',
+          printColorAdjust: 'exact'
+        }}
+      >
         <Typography sx={{ fontSize: '18px', fontWeight: '600', textAlign: 'center', padding: '8px' }}>{columnTitle}</Typography>
       </Box>
     </div>
@@ -122,16 +130,6 @@ const TableRow = ({ rowText, key, special, editable, colorOptions }) => {
   );
 };
 
-function printdiv(elem) {
-  var header_str = '<html><head><title>' + document.title + '</title></head><body>';
-  var footer_str = '</body></html>';
-  var new_str = document.getElementById(elem)?.innerHTML;
-  var old_str = document.body.innerHTML;
-  document.body.innerHTML = header_str + new_str + footer_str;
-  window.print();
-  document.body.innerHTML = old_str;
-  return false;
-}
 const PlaneationTable = ({ columns, rows, cubiculo }) => {
   // Función para manejar la impresión
   const colorDeCubiculo = {
@@ -151,7 +149,7 @@ const PlaneationTable = ({ columns, rows, cubiculo }) => {
   return (
     <>
       <Stack direction="row" spacing={2}>
-        <Button variant="contained" color="primary" onClick={() => printdiv('printable_div_id')}>
+        <Button variant="contained" color="primary" onClick={() => window.print()}>
           Imprimir
         </Button>
         <Button variant="contained" color="primary" onClick={() => window.location.reload()}>
@@ -159,15 +157,27 @@ const PlaneationTable = ({ columns, rows, cubiculo }) => {
         </Button>
       </Stack>
       <div id="printable_div_id">
-        <style>{'@media print { .planeacion-color-selector { display: none !important; } }'}</style>
+        <style>{`
+          @media print {
+            @page { margin: 12mm; }
+            body * { visibility: hidden; }
+            #printable_div_id, #printable_div_id * { visibility: visible; }
+            #printable_div_id { position: absolute; left: 0; top: 0; width: 100%; }
+            .planeacion-color-selector { display: none !important; }
+            .planeacion-print-color {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+          }
+        `}</style>
         <Box sx={{ flexGrow: 1, background: 'white', marginBottom: '8px', marginTop: '16px' }}>
           <Grid container>
             <Grid item xs={12}>
-              <TableColumn columnTitle={`Cubiculo ${cubiculo}`} color={`${colorDeCubiculo[cubiculo]}`} />
+              <TableColumn columnTitle={`Cubiculo ${cubiculo}`} color={colorDeCubiculo[cubiculo]} />
             </Grid>
             {columns.map((item) => (
               <Grid key={item?.headerName} item xs={item.width}>
-                <TableColumn columnTitle={item?.headerName} key={item?.headerName} color={`${colorDeCubiculo[cubiculo]}`} />
+                <TableColumn columnTitle={item?.headerName} key={item?.headerName} color={colorDeCubiculo[cubiculo]} />
               </Grid>
             ))}
             {rows.map((item, i) => (
